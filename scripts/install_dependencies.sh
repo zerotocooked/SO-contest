@@ -53,11 +53,17 @@ else
 fi
 
 # ---- Nginx ----
-# amazon-linux-extras cung cấp nginx 1.x cho Amazon Linux 2
+# AL2023 uses dnf and includes nginx in the default repo (no amazon-linux-extras)
+# AL2  uses yum and requires amazon-linux-extras to enable nginx1
 if ! command -v nginx &>/dev/null; then
-  echo "Installing Nginx via amazon-linux-extras..."
-  amazon-linux-extras enable nginx1
-  yum install -y nginx
+  if command -v dnf &>/dev/null; then
+    echo "Installing Nginx via dnf (Amazon Linux 2023)..."
+    dnf install -y nginx
+  else
+    echo "Installing Nginx via amazon-linux-extras (Amazon Linux 2)..."
+    amazon-linux-extras enable nginx1
+    yum install -y nginx
+  fi
 else
   echo "Nginx $(nginx -v 2>&1 | head -1) already installed, skipping."
 fi

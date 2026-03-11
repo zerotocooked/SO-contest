@@ -11,6 +11,9 @@ APP_NAME="so-contest-shop"
 NGINX_CONF="/etc/nginx/conf.d/so-contest.conf"
 NVM_DIR="/usr/local/nvm"
 
+# ---- Ensure /usr/local/bin (symlinks của node/npm/pm2) có trong PATH ----
+export PATH="/usr/local/bin:$PATH"
+
 # ---- Load NVM nếu node chưa có trong PATH ----
 if ! command -v node &>/dev/null; then
   if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -19,9 +22,6 @@ if ! command -v node &>/dev/null; then
     source "$NVM_DIR/nvm.sh"
   fi
 fi
-
-# Đảm bảo symlinks /usr/local/bin tồn tại (fallback)
-export PATH="/usr/local/bin:$PATH"
 
 echo "Node version: $(node -v)"
 echo "NPM  version: $(npm -v)"
@@ -50,19 +50,23 @@ fi
 cd "$APP_DIR"
 
 # Next.js standalone: chạy trực tiếp node server.js
+# --interpreter node: đảm bảo dùng node binary trong PATH (không phụ thuộc shebang)
 # PORT và HOSTNAME bắt buộc phải set cho standalone output
 PORT=3000 HOSTNAME=127.0.0.1 pm2 start server.js \
   --name "$APP_NAME" \
+  --interpreter node \
   --env production \
   --update-env
 
 # Lưu process list để pm2 tự restore sau reboot
 pm2 save
 
-# Cấu hình PM2 auto-start qua systemd (AL2 dùng systemd)
-# Phải chạy command mà `pm2 startup` in ra
-pm2 startup systemd -u ec2-user --hp /home/ec2-user | \
-  grep -E "^sudo" | bash || true
+# Cấu hình PM2 auto-start qua systemd
+# Cách an toàn hơn: dùng env PATH thay vì grep output của pm2 startup
+# Ref: https://pm2.keymetrics.io/docs/usage/startup/
+NODE_PATH="$(which node | xargs dirname)"
+env PATH="$NODE_PATH:/usr/local/bin:$PATH" pm2 startup systemd \
+  -u ec2-user --hp /home/ec2-user || true
 
 echo "=== [start_application] DONE ==="
 

@@ -1,11 +1,15 @@
 #!/bin/bash
 # ValidateService hook — kiểm tra app đang chạy sau deploy
-# Fail nếu không respond trong 30s → CodeDeploy rollback
+# Fail nếu không respond trong 60s → CodeDeploy rollback
+# NOTE: CodeDeploy chạy trong non-interactive shell → phải ensure PATH thủ công
 set -e
 
 echo "=== [validate_service] START ==="
 
-MAX_RETRIES=6
+# ---- Ensure /usr/local/bin (symlinks của pm2) có trong PATH ----
+export PATH="/usr/local/bin:$PATH"
+
+MAX_RETRIES=12
 WAIT_SECONDS=5
 URL="http://localhost:3000"
 
@@ -21,5 +25,5 @@ for i in $(seq 1 $MAX_RETRIES); do
 done
 
 echo "ERROR: Application did NOT start within $((MAX_RETRIES * WAIT_SECONDS))s!"
-pm2 logs so-contest-shop --lines 30 --nostream || true
+pm2 logs so-contest-shop --lines 50 --nostream || true
 exit 1
