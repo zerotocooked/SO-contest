@@ -5,18 +5,18 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo "=== Install phase ==="
+      - echo '=== Install phase ==='
       - cd shop
       - npm ci --prefer-offline
 
   build:
     commands:
-      - echo "=== Build phase ==="
+      - echo '=== Build phase ==='
       - npm run build
 
   post_build:
     commands:
-      - echo "=== Post-build: copy static assets ==="
+      - echo '=== Post-build ==='
       - cd ..
       - cp -r shop/.next/static shop/.next/standalone/.next/static
       - cp -r shop/public shop/.next/standalone/public
