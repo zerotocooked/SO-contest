@@ -1,0 +1,17 @@
+# Enforce LF for all shell scripts (must have LF on Linux servers)
+scripts/*.sh text eol=lf
+nginx/*.conf  text eol=lf
+
+# YAML files — LF
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# TypeScript/JavaScript — CRLF on Windows, LF on commit
+*.ts   text
+*.tsx  text
+*.js   text
+*.jsx  text
+*.json text
+
+# Markdown
+*.md text

@@ -1,0 +1,39 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "=== Install phase: installing dependencies ==="
+      - cd shop
+      - npm ci --prefer-offline
+
+  build:
+    commands:
+      - echo "=== Build phase: building Next.js standalone ==="
+      - npm run build
+
+  post_build:
+    commands:
+      - echo "=== Post-build: packaging artifact ==="
+      - cd ..
+      # Copy static assets vào standalone (bắt buộc cho standalone mode)
+      - cp -r shop/.next/static shop/.next/standalone/.next/static
+      - cp -r shop/public shop/.next/standalone/public
+
+artifacts:
+  files:
+    # CodeDeploy entrypoint
+    - appspec.yml
+    # Lifecycle hook scripts
+    - scripts/**/*
+    # Nginx config
+    - nginx/**/*
+    # Next.js standalone build
+    - shop/.next/standalone/**/*
+  discard-paths: no
+
+cache:
+  paths:
+    - shop/node_modules/**/*
