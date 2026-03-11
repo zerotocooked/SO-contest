@@ -2,8 +2,14 @@ version: 0.0
 os: linux
 
 files:
-  - source: /
+  # Next.js standalone output → root của app dir
+  - source: /shop/.next/standalone
     destination: /var/www/so-contest
+  # Scripts và nginx config vẫn cần deploy cùng
+  - source: /scripts
+    destination: /var/www/so-contest/scripts
+  - source: /nginx
+    destination: /var/www/so-contest/nginx
 
 hooks:
   BeforeInstall:
