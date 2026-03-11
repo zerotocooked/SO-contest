@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:
-  - source: shop/.next/standalone
+  - source: /
     destination: /var/www/so-contest
 
 hooks:
