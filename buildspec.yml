@@ -27,7 +27,6 @@ artifacts:
     - scripts/**/*
     - nginx/**/*
     - shop/.next/standalone/**/*
-  discard-paths: no
 
 cache:
   paths:
