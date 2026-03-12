@@ -15,18 +15,25 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const [productsData, categories] = await Promise.all([
-    getProducts(8, 0),
+    getProducts(12, 0),
     getCategories(),
   ]);
 
-  const featured = productsData.products;
-  const flashSale = [...productsData.products]
+  const allProducts = productsData.products;
+
+  // Highest-discount product becomes the hero feature
+  const heroProduct = [...allProducts]
+    .sort((a, b) => b.discountPercentage - a.discountPercentage)[0];
+
+  const flashSale = [...allProducts]
     .sort((a, b) => b.discountPercentage - a.discountPercentage)
     .slice(0, 4);
 
+  const featured = allProducts.slice(0, 8);
+
   return (
     <>
-      <HeroBanner />
+      <HeroBanner featuredProduct={heroProduct} />
 
       {/* Flash Sale */}
       <section className="bg-gradient-to-r from-red-50 to-orange-50 border-y">
@@ -65,17 +72,17 @@ export default async function HomePage() {
       </div>
 
       {/* Newsletter */}
-      <section className="bg-gradient-to-r from-indigo-600 to-violet-700 text-white">
+      <section className="bg-slate-900 text-white">
         <div className="container py-12 text-center">
           <h2 className="text-3xl font-bold mb-2">Get 20% Off Your First Order</h2>
-          <p className="text-indigo-200 mb-6 max-w-md mx-auto">Subscribe to get exclusive deals, new arrivals, and shopping tips.</p>
+          <p className="text-slate-400 mb-6 max-w-md mx-auto">Subscribe to get exclusive deals, new arrivals, and shopping tips.</p>
           <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input type="email" placeholder="Enter your email" required className="flex-1 h-11 rounded-full px-5 text-sm text-foreground outline-none focus:ring-2 focus:ring-white border-0" />
-            <button type="submit" className={cn(buttonVariants({ size: "lg" }), "rounded-full bg-white text-indigo-700 hover:bg-indigo-50 font-semibold px-6")}>
+            <input type="email" placeholder="Enter your email" required className="flex-1 h-11 rounded-full px-5 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary border border-slate-700 bg-slate-800 placeholder:text-slate-500" />
+            <button type="submit" className={cn(buttonVariants({ size: "lg" }), "rounded-full font-semibold px-6")}>
               Subscribe →
             </button>
           </form>
-          <p className="mt-3 text-xs text-indigo-300">Unsubscribe anytime. No spam.</p>
+          <p className="mt-3 text-xs text-slate-600">Unsubscribe anytime. No spam.</p>
         </div>
       </section>
     </>
