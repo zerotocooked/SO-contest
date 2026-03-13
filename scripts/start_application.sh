@@ -62,17 +62,14 @@ PORT=3000 HOSTNAME=127.0.0.1 pm2 start server.js \
 pm2 save
 
 # Cấu hình PM2 auto-start qua systemd
-# pm2 startup chỉ in ra lệnh → phải chạy lệnh đó với sudo
+# CodeDeploy chạy as root → service name là pm2-root (không phải pm2-ec2-user)
 NODE_PATH="$(which node | xargs dirname)"
-STARTUP_CMD=$(env PATH="$NODE_PATH:/usr/local/bin:$PATH" pm2 startup systemd \
-  -u ec2-user --hp /home/ec2-user 2>&1 | grep "sudo env")
-if [ -n "$STARTUP_CMD" ]; then
-  eval "$STARTUP_CMD" || true
-fi
+env PATH="$NODE_PATH:/usr/local/bin:$PATH" pm2 startup systemd 2>&1 || true
 
-# Đảm bảo pm2-ec2-user.service được enable và started
-systemctl enable pm2-ec2-user 2>/dev/null || true
-systemctl start pm2-ec2-user 2>/dev/null || true
+# Enable và start pm2-root service
+systemctl daemon-reload 2>/dev/null || true
+systemctl enable pm2-root 2>/dev/null || true
+systemctl start pm2-root 2>/dev/null || true
 
 echo "=== [start_application] DONE ==="
 
