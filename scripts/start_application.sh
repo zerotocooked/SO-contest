@@ -62,11 +62,17 @@ PORT=3000 HOSTNAME=127.0.0.1 pm2 start server.js \
 pm2 save
 
 # Cấu hình PM2 auto-start qua systemd
-# Cách an toàn hơn: dùng env PATH thay vì grep output của pm2 startup
-# Ref: https://pm2.keymetrics.io/docs/usage/startup/
+# pm2 startup chỉ in ra lệnh → phải chạy lệnh đó với sudo
 NODE_PATH="$(which node | xargs dirname)"
-env PATH="$NODE_PATH:/usr/local/bin:$PATH" pm2 startup systemd \
-  -u ec2-user --hp /home/ec2-user || true
+STARTUP_CMD=$(env PATH="$NODE_PATH:/usr/local/bin:$PATH" pm2 startup systemd \
+  -u ec2-user --hp /home/ec2-user 2>&1 | grep "sudo env")
+if [ -n "$STARTUP_CMD" ]; then
+  eval "$STARTUP_CMD" || true
+fi
+
+# Đảm bảo pm2-ec2-user.service được enable và started
+systemctl enable pm2-ec2-user 2>/dev/null || true
+systemctl start pm2-ec2-user 2>/dev/null || true
 
 echo "=== [start_application] DONE ==="
 
