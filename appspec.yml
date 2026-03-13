@@ -10,6 +10,9 @@ files:
     destination: /var/www/so-contest/scripts
   - source: /nginx
     destination: /var/www/so-contest/nginx
+  # CloudWatch Agent config
+  - source: /cloudwatch
+    destination: /var/www/so-contest/cloudwatch
 
 hooks:
   BeforeInstall:
