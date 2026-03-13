@@ -88,18 +88,58 @@ systemctl daemon-reload 2>/dev/null || true
 systemctl enable pm2-root 2>/dev/null || true
 systemctl start pm2-root 2>/dev/null || true
 
-# ---- Áp dụng CloudWatch Agent config mới ----
-CW_CONFIG_SRC="$REPO_ROOT/cloudwatch/amazon-cloudwatch-agent.json"
+# ---- Áp dụng CloudWatch Agent config (inline — không phụ thuộc file deploy) ----
 CW_CONFIG_DEST="/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.d/file_amazon-cloudwatch-agent.json"
 CW_CTL="/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl"
 
-if [ -f "$CW_CONFIG_SRC" ] && [ -f "$CW_CTL" ]; then
-  echo "Applying CloudWatch Agent config..."
-  cp "$CW_CONFIG_SRC" "$CW_CONFIG_DEST"
+if [ -f "$CW_CTL" ]; then
+  echo "Writing CloudWatch Agent config..."
+  mkdir -p "$(dirname "$CW_CONFIG_DEST")"
+  cat > "$CW_CONFIG_DEST" << 'CWEOF'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/nginx/so-contest-access.log",
+            "log_group_name": "aiops",
+            "log_stream_name": "{instance_id}/nginx-access",
+            "timestamp_format": "%d/%b/%Y:%H:%M:%S %z",
+            "timezone": "UTC",
+            "auto_removal": true
+          },
+          {
+            "file_path": "/var/log/nginx/so-contest-error.log",
+            "log_group_name": "aiops",
+            "log_stream_name": "{instance_id}/nginx-error",
+            "timezone": "UTC",
+            "auto_removal": true
+          },
+          {
+            "file_path": "/var/log/pm2/so-contest-shop-out.log",
+            "log_group_name": "aiops",
+            "log_stream_name": "{instance_id}/app-stdout",
+            "timezone": "UTC",
+            "auto_removal": true
+          },
+          {
+            "file_path": "/var/log/pm2/so-contest-shop-error.log",
+            "log_group_name": "aiops",
+            "log_stream_name": "{instance_id}/app-stderr",
+            "timezone": "UTC",
+            "auto_removal": true
+          }
+        ]
+      }
+    }
+  }
+}
+CWEOF
   "$CW_CTL" -a fetch-config -m ec2 -s -c "file:$CW_CONFIG_DEST"
   echo "CloudWatch Agent restarted with new config."
 else
-  echo "WARNING: CloudWatch Agent not found or config missing — skipping CW config apply."
+  echo "WARNING: CloudWatch Agent not found — skipping CW config apply."
 fi
 
 echo "=== [start_application] DONE ==="

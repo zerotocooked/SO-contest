@@ -26,7 +26,6 @@ artifacts:
     - appspec.yml
     - scripts/**/*
     - nginx/**/*
-    - cloudwatch/**/*
     - shop/.next/standalone/**/*
 
 cache:
